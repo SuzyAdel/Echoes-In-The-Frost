@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 [RequireComponent(typeof(Terrain))]
 public class TerrainLayers : MonoBehaviour
@@ -10,7 +10,7 @@ public class TerrainLayers : MonoBehaviour
     [Header("Fractal Noise Settings")]
     [Range(0.001f, 0.1f)] public float frequency = 0.01f;
     [Range(1, 10)] public int octaves = 6;
-    [Range(0.1f, 0.9f)] public float lacunarity = 2.0f;
+    [Range(1.1f, 3.0f)] public float lacunarity = 2.0f;
     [Range(0.1f, 0.9f)] public float gain = 0.5f;
     public Vector2 offset;
 
@@ -18,13 +18,20 @@ public class TerrainLayers : MonoBehaviour
     [Range(0.7f, 0.9f)] public float snowTarget = 0.8f;
     [Range(0.1f, 0.3f)] public float mountainTarget = 0.2f;
 
+    [Header("Mountain Intensity")]
+    [Range(0.1f, 1f)] public float minMountainOpacity = 0.3f;
+    [Range(0.5f, 1f)] public float maxMountainOpacity = 0.9f;
+    [Range(0.1f, 1f)] public float intensityVariation = 0.7f;
+
     private Terrain terrain;
     private TerrainData terrainData;
+    private System.Random random;
 
     private void Start()
     {
         terrain = GetComponent<Terrain>();
         terrainData = terrain.terrainData;
+        random = new System.Random(Time.time.GetHashCode());
 
         GenerateTerrainLayers();
     }
@@ -43,27 +50,33 @@ public class TerrainLayers : MonoBehaviour
         int height = terrainData.alphamapHeight;
         float[,,] alphaMap = new float[width, height, 2];
 
-        // Generate proper fractal noise
-        float[,] fractalNoise = GenerateFractalNoise(width, height);
+        // Generate primary fractal noise for mountain placement
+        float[,] mountainNoise = GenerateFractalNoise(width, height);
+        float mountainThreshold = FindThresholdForCoverage(mountainNoise, mountainTarget);
 
-        float snowThreshold = FindThresholdForCoverage(fractalNoise, snowTarget);
-        float mountainThreshold = FindThresholdForCoverage(fractalNoise, mountainTarget);
+        // Generate secondary noise for intensity variation
+        float[,] intensityNoise = GenerateFractalNoise(width, height, 0.5f);
 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                float noiseValue = fractalNoise[x, y];
+                float mountainValue = mountainNoise[x, y];
 
-                if (noiseValue > mountainThreshold)
+                if (mountainValue > mountainThreshold)
                 {
-                    alphaMap[x, y, 1] = 1f; // Mountain
-                    alphaMap[x, y, 0] = 0f;
+                    // Calculate intensity with variation
+                    float intensity = Mathf.Lerp(minMountainOpacity, maxMountainOpacity,
+                        intensityNoise[x, y] * intensityVariation +
+                        (float)(random.NextDouble() * 0.2f - 0.1f));
+
+                    alphaMap[x, y, 1] = intensity; // Varying mountain intensity
+                    alphaMap[x, y, 0] = 1f - intensity; // Snow shows through based on mountain opacity
                 }
                 else
                 {
-                    alphaMap[x, y, 0] = 1f; // Snow
-                    alphaMap[x, y, 1] = 0f;
+                    alphaMap[x, y, 0] = 1f; // Full snow
+                    alphaMap[x, y, 1] = 0f; // No mountain
                 }
             }
         }
@@ -71,18 +84,15 @@ public class TerrainLayers : MonoBehaviour
         terrainData.SetAlphamaps(0, 0, alphaMap);
     }
 
-    private float[,] GenerateFractalNoise(int width, int height)
+    private float[,] GenerateFractalNoise(int width, int height, float frequencyMultiplier = 1f)
     {
         float[,] noiseMap = new float[width, height];
 
-        // Random seed based on time
-        System.Random prng = new System.Random(Time.time.GetHashCode());
         Vector2[] octaveOffsets = new Vector2[octaves];
-
         for (int i = 0; i < octaves; i++)
         {
-            float offsetX = prng.Next(-10000, 10000) + offset.x;
-            float offsetY = prng.Next(-10000, 10000) + offset.y;
+            float offsetX = random.Next(-10000, 10000) + offset.x;
+            float offsetY = random.Next(-10000, 10000) + offset.y;
             octaveOffsets[i] = new Vector2(offsetX, offsetY);
         }
 
@@ -96,16 +106,14 @@ public class TerrainLayers : MonoBehaviour
             for (int x = 0; x < width; x++)
             {
                 float amplitude = 1;
-                float currentFrequency = frequency;
+                float currentFrequency = frequency * frequencyMultiplier;
                 float noiseHeight = 0;
 
-                // Fractional Brownian motion (fBm)
                 for (int i = 0; i < octaves; i++)
                 {
                     float sampleX = (x - halfWidth) * currentFrequency + octaveOffsets[i].x;
                     float sampleY = (y - halfHeight) * currentFrequency + octaveOffsets[i].y;
 
-                    // Using Unity's PerlinNoise as the basis function
                     float perlinValue = Mathf.PerlinNoise(sampleX, sampleY) * 2 - 1;
                     noiseHeight += perlinValue * amplitude;
 
@@ -139,7 +147,6 @@ public class TerrainLayers : MonoBehaviour
         int totalPixels = width * height;
         int targetPixels = Mathf.FloorToInt(totalPixels * targetCoverage);
 
-        // Create a flattened array of all noise values
         float[] values = new float[totalPixels];
         for (int y = 0, i = 0; y < height; y++)
         {
@@ -149,7 +156,6 @@ public class TerrainLayers : MonoBehaviour
             }
         }
 
-        // Sort to find the threshold
         System.Array.Sort(values);
         return values[totalPixels - targetPixels];
     }
