@@ -26,3 +26,14 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 - added move script
 - 
   ![image](https://github.com/user-attachments/assets/050f08e7-ed6a-4773-bd42-0cc15679dc7d)
+
+
+
+5. Characters
+   -
+
+
+![image](https://github.com/user-attachments/assets/65403b1f-7248-4589-a3fa-15a45e5cbc13)
+
+
+  
