@@ -8,4 +8,15 @@ this code makes a mix between montian nd snow with a fractrial noise
 ![image](https://github.com/user-attachments/assets/3cd2d94b-a106-4437-94fd-f042d0448a9d)
 ![image](https://github.com/user-attachments/assets/b7501162-1aac-49b1-b3b6-609f1b16e648)
 
-2. Skybox 
+2. Skybox
+   ![image](https://github.com/user-attachments/assets/88a909fb-37e8-45da-b618-ed9d56ebdf9d)
+
+3. Camera
+   added flare in main camera
+   disabled input
+   sphere orbit
+   recentering 
+   ![image](https://github.com/user-attachments/assets/e6f320e2-5f0d-4467-bf8d-b83df5d16a35)
+
+
+  4. 
