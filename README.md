@@ -20,7 +20,7 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
    ![image](https://github.com/user-attachments/assets/e6f320e2-5f0d-4467-bf8d-b83df5d16a35)
 
 
-  4. Drone 
+4. Drone 
 - postionong scaling ...
 - added mass , linear daming , angular damping and a slightly shifted center
 - added move script
@@ -35,5 +35,17 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 
 ![image](https://github.com/user-attachments/assets/65403b1f-7248-4589-a3fa-15a45e5cbc13)
 
+6. Particles
+- FIRE
+ - taken lecture practice as prefab and re used
+   
+- SNOW
+  - took a remdered installed material and reused
+  - i will create a small snow box follows drawn to make sure alwyas visable 
+    
+- FOG
+   - created in the entire scene
+ 
+![image](https://github.com/user-attachments/assets/7aac8c6b-a165-48a1-9d01-effc6ecb66a6)
 
   
