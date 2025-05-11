@@ -31,9 +31,10 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 
 5. # Characters
    -
-
-
 ![image](https://github.com/user-attachments/assets/65403b1f-7248-4589-a3fa-15a45e5cbc13)
+![image](https://github.com/user-attachments/assets/944e0005-593d-4cf7-ae14-389d1c36763b)
+
+
 
 6. # Particles
 - FIRE
