@@ -46,7 +46,8 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
     
 - FOG
    - created in the entire scene
- 
+ ![image](https://github.com/user-attachments/assets/11a59239-d42e-45a3-bc43-ab5db57c5308)
+
 ![image](https://github.com/user-attachments/assets/7aac8c6b-a165-48a1-9d01-effc6ecb66a6)
 
 7. # Aid Kit
