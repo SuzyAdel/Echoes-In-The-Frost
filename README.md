@@ -51,5 +51,7 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 ![image](https://github.com/user-attachments/assets/7aac8c6b-a165-48a1-9d01-effc6ecb66a6)
 
 7. # Aid Kit
+- scale 100,100,100
 ![image](https://github.com/user-attachments/assets/12bf5ded-0a17-4d91-ba1d-1aa7fc85e0ed)
+![image](https://github.com/user-attachments/assets/68abcf54-1378-4ee3-943c-14fc4f368d43)
 
