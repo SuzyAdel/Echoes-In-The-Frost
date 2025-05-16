@@ -79,6 +79,7 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 | `pickup`      | Plays the animation to pick up the First Aid Kit          |
 | `saved`       | Indicates the character has completed the rescue sequence |
 
+![image](https://github.com/user-attachments/assets/1d59c52b-9e8f-4c3f-a1fe-a73c3dd7a1af)
 
 
 📝 Revised Transition Table
