@@ -79,3 +79,18 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 | `pickup`      | Plays the animation to pick up the First Aid Kit          |
 | `saved`       | Indicates the character has completed the rescue sequence |
 
+
+
+📝 Revised Transition Table
+From State	To State	Conditions
+Sitting	Waving	waving == true && saved == false
+Waving	Sitting	waving == false
+Sitting	Turn Right	turn_right == true && saved == false
+Turn Right	Walk	walk == true && angleToKit < 30°
+Turn Right	Turn Right	walk == true && angleToKit >= 30° (loop turn)
+Turn Right	Sitting	turn_right == false (emergency exit)
+Walk	Pickup	pickup == true && kitDistance <= 0.5f
+Walk	Sitting	pickup == false && kitDistance > 5f (emergency exit)
+Pickup	Sitting	pickup == false && ExitTime=0.9
+ pickup == false && sitting == true
+Final: At end of sequence, saved = true
