@@ -66,4 +66,6 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 | Walk           | ✅ Yes      | Movement animation        |
 | Pickup         | ❌ No       | Final one-time action     |
 
+![image](https://github.com/user-attachments/assets/521ac9c3-e3c0-4bd9-a4ae-b698bd8cc3c0)
+
 - 
