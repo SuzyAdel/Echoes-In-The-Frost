@@ -66,6 +66,16 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 | Walk           | ✅ Yes      | Movement animation        |
 | Pickup         | ❌ No       | Final one-time action     |
 
-![image](https://github.com/user-attachments/assets/521ac9c3-e3c0-4bd9-a4ae-b698bd8cc3c0)
 
-- 
+![image](https://github.com/user-attachments/assets/521ac9c3-e3c0-4bd9-a4ae-b698bd8cc3c0)
+- Logic covers both Drone Wave and Kit Pickup flows with fallback to Sitting
+
+| **Parameter** | **Purpose / Triggered When**                              |
+| ------------- | --------------------------------------------------------- |
+| `sitting`     | Default state — idle character posture                    |
+| `waving`      | When drone is near (proximity logic triggers this)        |
+| `turn_right`  | Used to face the First Aid Kit (always turns right)       |
+| `walk`        | Move toward the First Aid Kit using root motion           |
+| `pickup`      | Plays the animation to pick up the First Aid Kit          |
+| `saved`       | Indicates the character has completed the rescue sequence |
+
