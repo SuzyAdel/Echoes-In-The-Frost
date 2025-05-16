@@ -55,3 +55,15 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 ![image](https://github.com/user-attachments/assets/12bf5ded-0a17-4d91-ba1d-1aa7fc85e0ed)
 ![image](https://github.com/user-attachments/assets/68abcf54-1378-4ee3-943c-14fc4f368d43)
 
+8. # Animation
+- set loop, and no looping
+  
+| Animation Clip | Loop Time? | Notes                     |
+| -------------- | ---------- | ------------------------- |
+| Sitting        | ✅ Yes      | Idle, default             |
+| Waving         | ✅ Yes      | Can be triggered often    |
+| TurnRight      | ❌ No       | One-time direction change |
+| Walk           | ✅ Yes      | Movement animation        |
+| Pickup         | ❌ No       | Final one-time action     |
+
+- 
