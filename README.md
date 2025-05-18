@@ -50,7 +50,7 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 
 ![image](https://github.com/user-attachments/assets/7aac8c6b-a165-48a1-9d01-effc6ecb66a6)
 
-7. # Aid Kit
+7. # First Aid Kit
 - scale 100,100,100
 - increased colider size so animations can interact with it better 
 ![image](https://github.com/user-attachments/assets/12bf5ded-0a17-4d91-ba1d-1aa7fc85e0ed)
@@ -85,17 +85,37 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 
 ![image](https://github.com/user-attachments/assets/1d59c52b-9e8f-4c3f-a1fe-a73c3dd7a1af)
 
+9. Particle Effects
+    - Fire
+  
+      
+    - Snow
+  
+      
+    - Fog
+      
 
-📝 Revised Transition Table
-From State	To State	Conditions
-Sitting	Waving	waving == true && saved == false
-Waving	Sitting	waving == false
-Sitting	Turn Right	turn_right == true && saved == false
-Turn Right	Walk	walk == true && angleToKit < 30°
-Turn Right	Turn Right	walk == true && angleToKit >= 30° (loop turn)
-Turn Right	Sitting	turn_right == false (emergency exit)
-Walk	Pickup	pickup == true && kitDistance <= 0.5f
-Walk	Sitting	pickup == false && kitDistance > 5f (emergency exit)
-Pickup	Sitting	pickup == false && ExitTime=0.9
- pickup == false && sitting == true
-Final: At end of sequence, saved = true
+10. Game Dynamics
+
+
+
+
+
+
+
+
+
+11. Drone Damadge and Crash Logic
+
+
+
+12. Wining condition
+
+
+
+BONUS :
+
+A] PROFILE PICTURES HUD 
+
+
+B] SOUND MUSIC 
