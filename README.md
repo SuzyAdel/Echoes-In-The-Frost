@@ -87,13 +87,19 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 
 9. Particle Effects
     - Fire
-  
-      
-    - Snow
-  
-      
-    - Fog
-      
+![image](https://github.com/user-attachments/assets/22a0e774-53bf-4c95-b7a2-f41bad6cb755)
+
+![image](https://github.com/user-attachments/assets/1efbea3a-f8a0-4965-8e09-cb179586a1a0)
+
+   - Snow
+    
+![image](https://github.com/user-attachments/assets/a36e87cb-b8f9-4049-8905-db820704caf1)
+
+![image](https://github.com/user-attachments/assets/bbbe2e60-df48-4d63-a110-861b15da4480)
+
+   - Fog
+![image](https://github.com/user-attachments/assets/b670d096-0fbf-4c26-ad83-c6b353e110fa)
+
 
 10. Game Dynamics
 
