@@ -4,19 +4,20 @@ public class CharacterBehavior : MonoBehaviour
 {
     [Header("Drone Settings")]
     public float droneDetectionRange = 5f;
-    public Transform drone;  //to assign drone in Inspector
+    public Transform drone;  // Assign drone in Inspector
 
     [Header("First Aid Kit Settings")]
-    public float kitDetectionRange = 5f; // Range to detect kits
-    public float kitPickupRange = 0.5f; // Distance to actually pick up
-    public float turnCompleteAngle = 30f; // angle at which turn stops
-    private Transform targetKit; // current kit to pick up
+    public float kitDetectionRange = 5f;
+    public float kitPickupRange = 0.5f;
+    public float turnCompleteAngle = 30f;
+    private Transform targetKit;
     private float lastKitCheckTime;
-    private float kitCheckInterval = 0.5f; // How often to check for kits
+    private float kitCheckInterval = 0.5f;
 
     // Animator references
     private Animator animator;
     private bool saved = false;
+    private bool isTurning = false;
 
     void Start()
     {
@@ -25,26 +26,23 @@ public class CharacterBehavior : MonoBehaviour
 
     void Update()
     {
-        if (saved) return; // Skip if already saved
+        if (saved) return;
 
-        // 1. Check for drone proximity
-        HandleDroneProximity();
+        HandleDroneProximity(); // Fixed method name (was HandleDroneProximity)
 
-        // 2. Check for kits periodically (better performance than every frame)
-        if (Time.time - lastKitCheckTime > kitCheckInterval)
+        if (Time.time - lastKitCheckTime > kitCheckInterval && targetKit == null)
         {
             FindNearestKit();
             lastKitCheckTime = Time.time;
         }
 
-        // 3. Handle kit pickup if one is nearby
         if (targetKit != null)
         {
             HandleKitPickup();
         }
     }
 
-    // DRONE PROXIMITY 
+    // Fixed method name (was HandleDroneProximity)
     private void HandleDroneProximity()
     {
         if (drone == null) return;
@@ -52,27 +50,36 @@ public class CharacterBehavior : MonoBehaviour
         float distanceToDrone = Vector3.Distance(transform.position, drone.position);
         bool isDroneNear = distanceToDrone <= droneDetectionRange;
 
-        animator.SetBool("waving", isDroneNear);
+        // Only wave if not currently handling a kit
+        if (targetKit == null)
+        {
+            animator.SetBool("waving", isDroneNear);
+        }
+        else
+        {
+            animator.SetBool("waving", false);
+        }
     }
 
-    // FIND NEAREST FIRST AID KIT
     private void FindNearestKit()
     {
-        if (targetKit != null) return; // Already have a target
-
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, kitDetectionRange);
         float closestDistance = Mathf.Infinity;
         Transform closestKit = null;
 
         foreach (var hitCollider in hitColliders)
         {
-            if (hitCollider.CompareTag("FirstAidKit"))
+            if (hitCollider.CompareTag("FirstAidKit") && hitCollider.enabled)
             {
-                float distance = Vector3.Distance(transform.position, hitCollider.transform.position);
-                if (distance < closestDistance)
+                // Additional check to make sure kit isn't falling through surfaces
+                if (Physics.Raycast(hitCollider.transform.position, Vector3.down, 0.1f))
                 {
-                    closestDistance = distance;
-                    closestKit = hitCollider.transform;
+                    float distance = Vector3.Distance(transform.position, hitCollider.transform.position);
+                    if (distance < closestDistance)
+                    {
+                        closestDistance = distance;
+                        closestKit = hitCollider.transform;
+                    }
                 }
             }
         }
@@ -80,14 +87,14 @@ public class CharacterBehavior : MonoBehaviour
         if (closestKit != null)
         {
             targetKit = closestKit;
+            isTurning = true;
             animator.SetBool("turn_right", true);
+            animator.SetBool("waving", false);
         }
     }
 
-    // FIRST AID KIT LOGIC 
     private void HandleKitPickup()
     {
-        // Check if kit was destroyed or picked up by someone else
         if (targetKit == null)
         {
             animator.SetBool("turn_right", false);
@@ -96,54 +103,68 @@ public class CharacterBehavior : MonoBehaviour
         }
 
         Vector3 directionToKit = targetKit.position - transform.position;
-        directionToKit.y = 0; // Ignore vertical difference
+        directionToKit.y = 0;
         float angleToKit = Vector3.Angle(transform.forward, directionToKit);
         float distanceToKit = directionToKit.magnitude;
 
-        // 1. Turn toward kit (always right)
-        if (angleToKit > turnCompleteAngle)
+        // 1. Turn toward kit
+        if (angleToKit > turnCompleteAngle && isTurning)
         {
-            animator.SetBool("turn_right", true);
+            // Calculate turn direction (still using right turn animation)
+            float dot = Vector3.Dot(transform.right, directionToKit.normalized);
+            if (dot > 0) // If kit is to our right
+            {
+                animator.SetBool("turn_right", true);
+            }
+            else // If kit is to our left, we'll still use right turn animation
+            {
+                animator.SetBool("turn_right", true);
+                // Optional: Add slight rotation to help face the kit
+                transform.Rotate(0, Time.deltaTime * 100f, 0);
+            }
             animator.SetBool("walk", false);
         }
         // 2. Walk toward kit
-        else if (distanceToKit > kitPickupRange) // Use the defined pickup range
+        else if (distanceToKit > kitPickupRange)
         {
+            isTurning = false;
             animator.SetBool("turn_right", false);
             animator.SetBool("walk", true);
-            
-            // Face the kit while walking (root motion will handle movement)
-            transform.rotation = Quaternion.Lerp(transform.rotation,
-                Quaternion.LookRotation(directionToKit),
-                Time.deltaTime * 5f);
+
+            // Smooth rotation toward kit
+            Quaternion targetRotation = Quaternion.LookRotation(directionToKit);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
         }
         // 3. Pick up the kit
         else
         {
             animator.SetBool("walk", false);
             animator.SetBool("pickup", true);
-            Destroy(targetKit.gameObject); // Remove the kit
+
+            // Make sure kit exists before destroying
+            if (targetKit != null)
+            {
+                Destroy(targetKit.gameObject);
+            }
+            targetKit = null;
         }
     }
 
-    // ANIMATION EVENT (Call at end of Pickup animation)
     public void OnPickupComplete()
     {
         animator.SetBool("pickup", false);
         animator.SetBool("sitting", true);
         saved = true;
-        targetKit = null; // Reset target
+        targetKit = null;
+        isTurning = false;
     }
 
-    // DEBUG HELPERS
-    private void OnDrawGizmos()
+    void OnDrawGizmos()
     {
-        // Drone detection range
-        Gizmos.color = Color.blue;// turns blue when the drone is near
+        Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, droneDetectionRange);
 
-        // Kit detection range (if using a trigger collider)
-        Gizmos.color = Color.green; // turns green when the kit is near
+        Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, kitDetectionRange);
     }
 }
