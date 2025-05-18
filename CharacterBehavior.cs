@@ -3,168 +3,327 @@ using UnityEngine;
 public class CharacterBehavior : MonoBehaviour
 {
     [Header("Drone Settings")]
-    public float droneDetectionRange = 5f;
-    public Transform drone;  // Assign drone in Inspector
+    public float droneDetectionRange = 50f;// Distance at which the character can detect the drone
+    public Transform drone;
 
     [Header("First Aid Kit Settings")]
-    public float kitDetectionRange = 5f;
-    public float kitPickupRange = 0.5f;
-    public float turnCompleteAngle = 30f;
-    private Transform targetKit;
-    private float lastKitCheckTime;
-    private float kitCheckInterval = 0.5f;
+    public float kitPickupRange = 10f;// Distance at which the character can pick up the kit
+    public float turnCompleteAngle = 30f;// Angle at which the character will stop turning
 
-    // Animator references
+    public float kitDestroyVelocity = 8f;
+
+    public float stuckRotationTime = 5f;// Time before the character is considered stuck while rotating
+    public float stuckMovementDistance = 2f;// Distance to check if the character is stuck while moving
+
+    private Transform targetKit;
+    private float rotationStartTime;
+    private bool isRotating;// Whether the character is currently rotating
+
+    private Vector3 lastPosition;
+    private float positionCheckInterval = 1f;
+    private float lastPositionCheckTime;
+
+    [Header("Gizmo Settings")]
+    public float gizmoSize = 1f;
+
     private Animator animator;
-    private bool saved = false;
-    private bool isTurning = false;
+    private bool saved = false;// true when the character has picked up a kit, must return false afterwards 
+    private bool hasKit = false;// true when the character has a kit in hand
 
     void Start()
     {
         animator = GetComponent<Animator>();
+        lastPosition = transform.position;// used to check if the character is stuck
+
     }
 
     void Update()
     {
-        if (saved) return;
+       // if (saved && !hasKit) return; this keeps the character stuck after picking up 
 
-        HandleDroneProximity(); // Fixed method name (was HandleDroneProximity)
+        HandleDroneProximity();// handle the drone proximity detection
 
-        if (Time.time - lastKitCheckTime > kitCheckInterval && targetKit == null)
+        if (targetKit != null)// checks if character has a kit in hand
         {
-            FindNearestKit();
-            lastKitCheckTime = Time.time;
-        }
-
-        if (targetKit != null)
-        {
-            HandleKitPickup();
-        }
-    }
-
-    // Fixed method name (was HandleDroneProximity)
-    private void HandleDroneProximity()
-    {
-        if (drone == null) return;
-
-        float distanceToDrone = Vector3.Distance(transform.position, drone.position);
-        bool isDroneNear = distanceToDrone <= droneDetectionRange;
-
-        // Only wave if not currently handling a kit
-        if (targetKit == null)
-        {
-            animator.SetBool("waving", isDroneNear);
+            HandleKitPickup();// handle the kit pickup process
+            CheckForStuckRotation();// check if the character is stuck while rotating
         }
         else
         {
+            //reset to idle sitting and re checks for kit 
+            animator.SetBool("turn_right", false);
+            animator.SetBool("walk", false);
+            animator.SetBool("pickup", false);
+
+            animator.SetBool("sitting", true);
             animator.SetBool("waving", false);
+
+            animator.SetBool("saved", false);
+            animator.SetBool("saved_kit", false);
+
+
+            FindNearestKit();// find the nearest kit if the character doesn't have one
+            HandleDroneProximity(); // check if the drone is nearby agian 
+
+        }
+
+        CheckPositionChange();// to protect against stuck movement
+    }
+
+  
+    private void HandleDroneProximity()
+    {
+        if (drone == null) return;// check if the drone is assigned
+
+        // Check if the drone is within detection range
+        float distanceToDrone = Vector3.Distance(transform.position, drone.position);
+        bool isDroneNear = distanceToDrone <= droneDetectionRange;
+
+        animator.SetBool("waving", isDroneNear && !hasKit);
+    }
+
+    private void HandleKitPickup()
+    {
+        if (targetKit == null) return;// if there is no kit, return
+
+        //Move towards the kit
+        Vector3 directionToKit = targetKit.position - transform.position;//direction
+        directionToKit.y = 0;// ignore y-axis
+        float angleToKit = Vector3.Angle(transform.forward, directionToKit);//angle
+        float distanceToKit = directionToKit.magnitude;
+
+        // If kit is very close, just pick it up
+        if (distanceToKit < 0.3f)
+        {
+            PickupKit();
+            return;
+        }
+
+        // Turn toward kit
+        if (angleToKit > turnCompleteAngle)
+        {
+            if (!isRotating)// if the character is not already rotating
+            {
+                // Calculate rotation step
+                float rotationStep = Mathf.Min(angleToKit, turnCompleteAngle);
+                Quaternion targetRotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(directionToKit), rotationStep);
+                transform.rotation = targetRotation;
+
+                
+                // Check if the character is stuck while rotating
+                if (angleToKit > stuckMovementDistance)
+                {
+                    CheckForStuckRotation();
+                  
+                }
+                // Start rotation timer
+              
+                rotationStartTime = Time.time;// reset the rotation timer
+                isRotating = true;// set the character to rotating
+            }
+
+
+            animator.SetBool("turn_right", true);// after rotating, set the animation to turn right
+            animator.SetBool("walk", false);
+            animator.SetBool("pickup", false);
+        }
+        // Walk toward kit
+        else if (distanceToKit > 0.5f)
+        {
+            isRotating = false;
+            animator.SetBool("turn_right", false);
+            animator.SetBool("walk", true);
+        }
+        // Pick up the kit , close enough 
+        else
+        {
+            PickupKit();
+        }
+    }
+
+    private void PickupKit()
+    {
+        animator.SetBool("walk", false);
+        animator.SetBool("turn_right", false);
+        animator.SetBool("pickup", true);
+
+        // Immediately "pick up" the kit (in reality you might want to wait for animation)
+        hasKit = true;
+        if (targetKit != null)
+        {
+            Destroy(targetKit.gameObject);// destroy the kit thats picked up
+        }
+        targetKit = null;
+    }
+
+    private void CheckForStuckRotation()
+    {
+        if (isRotating && Time.time - rotationStartTime > stuckRotationTime) 
+        {
+            // We've been rotating too long - try moving forward
+            animator.SetBool("turn_right", false);
+            animator.SetBool("walk", true);//walk not sit sa it might be slightly in front 
+
+            // Reset rotation timer
+            isRotating = false;
+
+            // Try to find a new path to avoid beinf stuck 
+            FindNearestKit();
+        }
+    }
+
+    private void CheckPositionChange()
+    {
+        if (Time.time - lastPositionCheckTime > positionCheckInterval)
+        {
+            float distanceMoved = Vector3.Distance(transform.position, lastPosition);
+            // Check if the character has moved significantly
+            if (distanceMoved < 0.1f)
+            {
+                // Character hasn't moved much fa might be stuck
+                FindNearestKit();
+            }
+
+            lastPosition = transform.position;// update the last position
+            lastPositionCheckTime = Time.time;// reset the last position check time
         }
     }
 
     private void FindNearestKit()
     {
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, kitDetectionRange);
-        float closestDistance = Mathf.Infinity;
+        GameObject[] kits = GameObject.FindGameObjectsWithTag("FirstAidKit");//array 
         Transform closestKit = null;
+        float closestDistance = Mathf.Infinity;
 
-        foreach (var hitCollider in hitColliders)
+        foreach (GameObject kit in kits)
         {
-            if (hitCollider.CompareTag("FirstAidKit") && hitCollider.enabled)
+            // Skip destroyed or invalid kits , distroyed or null
+            if (kit == null) continue;
+
+            float distance = Vector3.Distance(transform.position, kit.transform.position);
+            if (distance < closestDistance && distance <= kitPickupRange) // swap 
             {
-                // Additional check to make sure kit isn't falling through surfaces
-                if (Physics.Raycast(hitCollider.transform.position, Vector3.down, 0.1f))
-                {
-                    float distance = Vector3.Distance(transform.position, hitCollider.transform.position);
-                    if (distance < closestDistance)
-                    {
-                        closestDistance = distance;
-                        closestKit = hitCollider.transform;
-                    }
-                }
+                closestKit = kit.transform;
+                closestDistance = distance;
             }
         }
 
-        if (closestKit != null)
+        targetKit = closestKit;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("FirstAidKit") && !hasKit)
         {
-            targetKit = closestKit;
-            isTurning = true;
-            animator.SetBool("turn_right", true);
-            animator.SetBool("waving", false);
+            // Check if this kit is valid (not destroyed)
+            if (other.gameObject != null)
+            {
+                targetKit = other.transform;
+                animator.SetBool("turn_right", true);
+            }
         }
     }
 
-    private void HandleKitPickup()
+    // Animation Event - Called at the end of pickup animation
+    public void OnPickupComplete() // also done in update 
     {
-        if (targetKit == null)
-        {
-            animator.SetBool("turn_right", false);
-            animator.SetBool("walk", false);
-            return;
-        }
-
-        Vector3 directionToKit = targetKit.position - transform.position;
-        directionToKit.y = 0;
-        float angleToKit = Vector3.Angle(transform.forward, directionToKit);
-        float distanceToKit = directionToKit.magnitude;
-
-        // 1. Turn toward kit
-        if (angleToKit > turnCompleteAngle && isTurning)
-        {
-            // Calculate turn direction (still using right turn animation)
-            float dot = Vector3.Dot(transform.right, directionToKit.normalized);
-            if (dot > 0) // If kit is to our right
-            {
-                animator.SetBool("turn_right", true);
-            }
-            else // If kit is to our left, we'll still use right turn animation
-            {
-                animator.SetBool("turn_right", true);
-                // Optional: Add slight rotation to help face the kit
-                transform.Rotate(0, Time.deltaTime * 100f, 0);
-            }
-            animator.SetBool("walk", false);
-        }
-        // 2. Walk toward kit
-        else if (distanceToKit > kitPickupRange)
-        {
-            isTurning = false;
-            animator.SetBool("turn_right", false);
-            animator.SetBool("walk", true);
-
-            // Smooth rotation toward kit
-            Quaternion targetRotation = Quaternion.LookRotation(directionToKit);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
-        }
-        // 3. Pick up the kit
-        else
-        {
-            animator.SetBool("walk", false);
-            animator.SetBool("pickup", true);
-
-            // Make sure kit exists before destroying
-            if (targetKit != null)
-            {
-                Destroy(targetKit.gameObject);
-            }
-            targetKit = null;
-        }
-    }
-
-    public void OnPickupComplete()
-    {
+        animator.SetBool("turn_right", false);
+        animator.SetBool("walk", false);
         animator.SetBool("pickup", false);
+
         animator.SetBool("sitting", true);
+        animator.SetBool("waving", false);
+
+        animator.SetBool("saved", false);
+        animator.SetBool("saved_kit", false);
+
         saved = true;
-        targetKit = null;
-        isTurning = false;
+        hasKit = false; // Reset for next time
     }
 
-    void OnDrawGizmos()
+    // First Aid Kit collision handler (to be called from the FirstAidKit script)
+    public void OnKitDroppedNearby(GameObject kit)
+    {
+        if (!hasKit && Vector3.Distance(transform.position, kit.transform.position) <= kitPickupRange)
+        {
+            targetKit = kit.transform;
+        }
+    }
+
+    private void OnDrawGizmos()
     {
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, droneDetectionRange);
 
         Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(transform.position, kitDetectionRange);
+        Gizmos.DrawWireSphere(transform.position, kitPickupRange);
+
+        // Draw direction to target kit if one exists
+        if (targetKit != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position, targetKit.position);
+        }
+    }
+    
+
+    [RequireComponent(typeof(Rigidbody))]
+    public class FirstAidKit : MonoBehaviour
+    {
+        public float validDropRange = 10f;
+        private Rigidbody rb;
+        private bool isDestroyed = false;
+
+        void Start()
+        {
+            rb = GetComponent<Rigidbody>();
+            if (rb == null)
+            {
+                Debug.LogError("Rigidbody component missing!");
+                enabled = false;
+            }
+        }
+
+        void Update()
+        {
+            if (isDestroyed) return;
+
+            if (rb.velocity.magnitude > 8f)
+            {
+                DestroyKit();
+            }
+        }
+
+        void OnCollisionEnter(Collision collision)
+        {
+            if (isDestroyed) return;
+
+            if (collision.gameObject.CompareTag("Terrain"))
+            {
+                if (rb.velocity.magnitude > 8f)
+                {
+                    DestroyKit();
+                }
+                else
+                {
+                    NotifyCharacter();
+                }
+            }
+        }
+
+        private void DestroyKit()
+        {
+            isDestroyed = true;
+            Destroy(gameObject);
+        }
+
+        private void NotifyCharacter()
+        {
+            CharacterBehavior character = FindObjectOfType<CharacterBehavior>();
+            if (character != null)
+            {
+                character.OnKitDroppedNearby(gameObject);
+            }
+        }
     }
 }
