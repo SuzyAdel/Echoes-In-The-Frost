@@ -52,8 +52,11 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 
 7. # Aid Kit
 - scale 100,100,100
+- increased colider size so animations can interact with it better 
 ![image](https://github.com/user-attachments/assets/12bf5ded-0a17-4d91-ba1d-1aa7fc85e0ed)
 ![image](https://github.com/user-attachments/assets/68abcf54-1378-4ee3-943c-14fc4f368d43)
+![image](https://github.com/user-attachments/assets/8ab816cb-3ac0-4381-be23-b0be435d292c)
+
 
 8. # Animation
 - set loop, and no looping
