@@ -85,7 +85,7 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 
 ![image](https://github.com/user-attachments/assets/1d59c52b-9e8f-4c3f-a1fe-a73c3dd7a1af)
 
-9. Particle Effects
+9. # Particle Effects
     - Fire
 ![image](https://github.com/user-attachments/assets/22a0e774-53bf-4c95-b7a2-f41bad6cb755)
 
@@ -102,24 +102,30 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 ![image](https://github.com/user-attachments/assets/b670d096-0fbf-4c26-ad83-c6b353e110fa)
 
 
-10. Game Dynamics
+10. # Game Dynamics
 
 ![image](https://github.com/user-attachments/assets/4811b938-5ead-438f-8dab-ece008b46481)
 
 ![image](https://github.com/user-attachments/assets/51afdf0a-5920-4922-8a65-e79f51d55b79)
 
 
-11. Drone Damadge and Crash Logic
+11. # Drone Damadge and Crash Logic
 
+code 
 
+12. # Wining condition
 
-12. Wining condition
-
+code 
 
 
 BONUS :
 
-A] PROFILE PICTURES HUD 
+A] PROFILE PICTURES HUD
+![image](https://github.com/user-attachments/assets/e91eddbc-5732-4926-8391-69988cf49337)
+
+![image](https://github.com/user-attachments/assets/0f02a42c-d725-4971-9382-df71baa965d2)
+
+![image](https://github.com/user-attachments/assets/9fb9e65a-2aff-42d9-9772-d22c84a5a629)
 
 
 B] SOUND MUSIC 
