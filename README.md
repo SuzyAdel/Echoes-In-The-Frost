@@ -98,17 +98,15 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 ![image](https://github.com/user-attachments/assets/bbbe2e60-df48-4d63-a110-861b15da4480)
 
    - Fog
+     
 ![image](https://github.com/user-attachments/assets/b670d096-0fbf-4c26-ad83-c6b353e110fa)
 
 
 10. Game Dynamics
 
+![image](https://github.com/user-attachments/assets/4811b938-5ead-438f-8dab-ece008b46481)
 
-
-
-
-
-
+![image](https://github.com/user-attachments/assets/51afdf0a-5920-4922-8a65-e79f51d55b79)
 
 
 11. Drone Damadge and Crash Logic
