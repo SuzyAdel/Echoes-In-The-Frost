@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class CharacterBehavior : MonoBehaviour
 {
@@ -7,9 +7,12 @@ public class CharacterBehavior : MonoBehaviour
     public Transform drone;  //to assign drone in Inspector
 
     [Header("First Aid Kit Settings")]
-    public float kitPickupRange = 3f;
+    public float kitDetectionRange = 5f; // Range to detect kits
+    public float kitPickupRange = 0.5f; // Distance to actually pick up
     public float turnCompleteAngle = 30f; // angle at which turn stops
     private Transform targetKit; // current kit to pick up
+    private float lastKitCheckTime;
+    private float kitCheckInterval = 0.5f; // How often to check for kits
 
     // Animator references
     private Animator animator;
@@ -27,7 +30,14 @@ public class CharacterBehavior : MonoBehaviour
         // 1. Check for drone proximity
         HandleDroneProximity();
 
-        // 2. Handle kit pickup if one is nearby
+        // 2. Check for kits periodically (better performance than every frame)
+        if (Time.time - lastKitCheckTime > kitCheckInterval)
+        {
+            FindNearestKit();
+            lastKitCheckTime = Time.time;
+        }
+
+        // 3. Handle kit pickup if one is nearby
         if (targetKit != null)
         {
             HandleKitPickup();
@@ -45,9 +55,46 @@ public class CharacterBehavior : MonoBehaviour
         animator.SetBool("waving", isDroneNear);
     }
 
+    // FIND NEAREST FIRST AID KIT
+    private void FindNearestKit()
+    {
+        if (targetKit != null) return; // Already have a target
+
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, kitDetectionRange);
+        float closestDistance = Mathf.Infinity;
+        Transform closestKit = null;
+
+        foreach (var hitCollider in hitColliders)
+        {
+            if (hitCollider.CompareTag("FirstAidKit"))
+            {
+                float distance = Vector3.Distance(transform.position, hitCollider.transform.position);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestKit = hitCollider.transform;
+                }
+            }
+        }
+
+        if (closestKit != null)
+        {
+            targetKit = closestKit;
+            animator.SetBool("turn_right", true);
+        }
+    }
+
     // FIRST AID KIT LOGIC 
     private void HandleKitPickup()
     {
+        // Check if kit was destroyed or picked up by someone else
+        if (targetKit == null)
+        {
+            animator.SetBool("turn_right", false);
+            animator.SetBool("walk", false);
+            return;
+        }
+
         Vector3 directionToKit = targetKit.position - transform.position;
         directionToKit.y = 0; // Ignore vertical difference
         float angleToKit = Vector3.Angle(transform.forward, directionToKit);
@@ -60,26 +107,22 @@ public class CharacterBehavior : MonoBehaviour
             animator.SetBool("walk", false);
         }
         // 2. Walk toward kit
-        else if (distanceToKit > 0.5f) // Small buffer to prevent jitter
+        else if (distanceToKit > kitPickupRange) // Use the defined pickup range
         {
             animator.SetBool("turn_right", false);
             animator.SetBool("walk", true);
+            
+            // Face the kit while walking (root motion will handle movement)
+            transform.rotation = Quaternion.Lerp(transform.rotation,
+                Quaternion.LookRotation(directionToKit),
+                Time.deltaTime * 5f);
         }
         // 3. Pick up the kit
         else
         {
             animator.SetBool("walk", false);
             animator.SetBool("pickup", true);
-        }
-    }
-
-    // TRIGGER DETECTION (For Kits)
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("FirstAidKit") && !saved)
-        {
-            targetKit = other.transform;
-            animator.SetBool("turn_right", true);
+            Destroy(targetKit.gameObject); // Remove the kit
         }
     }
 
@@ -101,6 +144,6 @@ public class CharacterBehavior : MonoBehaviour
 
         // Kit detection range (if using a trigger collider)
         Gizmos.color = Color.green; // turns green when the kit is near
-        Gizmos.DrawWireSphere(transform.position, kitPickupRange);
+        Gizmos.DrawWireSphere(transform.position, kitDetectionRange);
     }
 }
