@@ -25,7 +25,8 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 - added mass , linear daming , angular damping and a slightly shifted center
 - added move script
 - 
-  ![image](https://github.com/user-attachments/assets/050f08e7-ed6a-4773-bd42-0cc15679dc7d)
+![image](https://github.com/user-attachments/assets/050f08e7-ed6a-4773-bd42-0cc15679dc7d)
+![image](https://github.com/user-attachments/assets/176a94b0-5ad3-4db5-be34-945f483b5b01)
 
 
 
@@ -92,7 +93,9 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 ![image](https://github.com/user-attachments/assets/1efbea3a-f8a0-4965-8e09-cb179586a1a0)
 
    - Snow
-    
+    - made the simultion to be world to stop trurning with player
+     ![image](https://github.com/user-attachments/assets/c1ac6d95-83c9-44ec-8e52-079f9cad254e)
+
 ![image](https://github.com/user-attachments/assets/a36e87cb-b8f9-4049-8905-db820704caf1)
 
 ![image](https://github.com/user-attachments/assets/bbbe2e60-df48-4d63-a110-861b15da4480)
@@ -111,16 +114,28 @@ Unity-based action-adventure rescue game where players pilot a drone through a d
 
 11. # Drone Damadge and Crash Logic
 
-code 
-
+- code 
+ - The drone gets damaged when it hits any object with a Relative Velocity greater than 3
+ - The drone can only withstand 3 collisions. 
+ - After each hit, the drone becomes immune to damage for 5 seconds, preventing additional 
+damage during that period.
+ - After the third hit: 
+   - The drone crashes, triggering the Fire particle effect. 
+   - A "Mission Failed !" message should be displayed. 
+   - After 10 seconds, either restart the game or end it.
+     
 12. # Wining condition
-
-code 
+code :
+- Once all three characters have successfully received and picked up their kits, a "Mission 
+Accomplished !" message must be displayed.
+- After 10 seconds, either end the game or restart it.
 
 
 BONUS :
 
 A] PROFILE PICTURES HUD
+- Display the profile pictures of Steve, Pete, and Kate on the lower left corner of the screen. 
+- When a character is saved, a blue check mark should appear on their picture.
 ![image](https://github.com/user-attachments/assets/e91eddbc-5732-4926-8391-69988cf49337)
 
 ![image](https://github.com/user-attachments/assets/0f02a42c-d725-4971-9382-df71baa965d2)
@@ -129,6 +144,11 @@ A] PROFILE PICTURES HUD
 
 
 B] SOUND MUSIC 
+- Add a background music track of your choice. 
+- Play a snow blizzard sound effect during gameplay. 
+- Play a propeller sound when the drone's rotors are spinning (i.e., when the SPACE BAR is 
+pressed).
+- added a hit sound on the ground to indicate a damdging hit 
 
 ![image](https://github.com/user-attachments/assets/f676d4e0-9bcd-4544-97ba-c672a6161e3c)
 
