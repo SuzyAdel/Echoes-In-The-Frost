@@ -1,3 +1,5 @@
+using System.Timers;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 public class CharacterBehavior : MonoBehaviour
@@ -14,6 +16,7 @@ public class CharacterBehavior : MonoBehaviour
 
     public float stuckRotationTime = 5f;// Time before the character is considered stuck while rotating
     public float stuckMovementDistance = 2f;// Distance to check if the character is stuck while moving
+    public GameObject rightHand;
 
     private Transform targetKit;
     private float rotationStartTime;
@@ -29,17 +32,22 @@ public class CharacterBehavior : MonoBehaviour
     private Animator animator;
     private bool saved = false;// true when the character has picked up a kit, must return false afterwards 
     private bool hasKit = false;// true when the character has a kit in hand
+    private bool kitHand = false;
 
+
+    float yWithGravity = 0f;// y position with gravity  
+    CharacterController controller;
     void Start()
     {
         animator = GetComponent<Animator>();
         lastPosition = transform.position;// used to check if the character is stuck
+        controller = GetComponent<CharacterController>();
 
     }
 
     void Update()
     {
-       // if (saved && !hasKit) return; this keeps the character stuck after picking up 
+        // if (saved && !hasKit) return; this keeps the character stuck after picking up 
 
         HandleDroneProximity();// handle the drone proximity detection
 
@@ -47,6 +55,16 @@ public class CharacterBehavior : MonoBehaviour
         {
             HandleKitPickup();// handle the kit pickup process
             CheckForStuckRotation();// check if the character is stuck while rotating
+            if (kitHand && targetKit != null)
+            {
+                targetKit.SetParent(rightHand.transform);
+                targetKit.GetComponent<Rigidbody>().isKinematic = true;
+                targetKit.localPosition = Vector3.zero;
+                targetKit.localRotation = Quaternion.identity;
+
+                // destory after 3 sec when is held 
+                Destroy(targetKit.gameObject, 3f);
+            }
         }
         else
         {
@@ -67,10 +85,19 @@ public class CharacterBehavior : MonoBehaviour
 
         }
 
+        if(controller.isGrounded)
+        {
+            yWithGravity = 0.0f;
+        }
+        yWithGravity += Physics.gravity.y * Time.deltaTime;
+        Vector3 moveDirection = new Vector3(0, yWithGravity, 0);
+
+        transform.position += moveDirection * Time.deltaTime;
+
         CheckPositionChange();// to protect against stuck movement
     }
 
-  
+
     private void HandleDroneProximity()
     {
         if (drone == null) return;// check if the drone is assigned
@@ -106,18 +133,18 @@ public class CharacterBehavior : MonoBehaviour
             {
                 // Calculate rotation step
                 float rotationStep = Mathf.Min(angleToKit, turnCompleteAngle);
-                Quaternion targetRotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(directionToKit), rotationStep);
-                transform.rotation = targetRotation;
+                //Quaternion targetRotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(directionToKit), rotationStep);
+                //transform.rotation = targetRotation;
 
-                
+
                 // Check if the character is stuck while rotating
                 if (angleToKit > stuckMovementDistance)
                 {
                     CheckForStuckRotation();
-                  
+
                 }
                 // Start rotation timer
-              
+
                 rotationStartTime = Time.time;// reset the rotation timer
                 isRotating = true;// set the character to rotating
             }
@@ -151,14 +178,14 @@ public class CharacterBehavior : MonoBehaviour
         hasKit = true;
         if (targetKit != null)
         {
-            Destroy(targetKit.gameObject);// destroy the kit thats picked up
+            //Destroy(targetKit.gameObject);// destroy the kit thats picked up
         }
-        targetKit = null;
+        //targetKit = null;
     }
 
     private void CheckForStuckRotation()
     {
-        if (isRotating && Time.time - rotationStartTime > stuckRotationTime) 
+        if (isRotating && Time.time - rotationStartTime > stuckRotationTime)
         {
             // We've been rotating too long - try moving forward
             animator.SetBool("turn_right", false);
@@ -250,6 +277,10 @@ public class CharacterBehavior : MonoBehaviour
         }
     }
 
+    public void PickUpKit(int val)
+    {
+        kitHand = val == 1;
+    }
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.blue;
@@ -265,7 +296,7 @@ public class CharacterBehavior : MonoBehaviour
             Gizmos.DrawLine(transform.position, targetKit.position);
         }
     }
-    
+
 
     [RequireComponent(typeof(Rigidbody))]
     public class FirstAidKit : MonoBehaviour
@@ -288,7 +319,7 @@ public class CharacterBehavior : MonoBehaviour
         {
             if (isDestroyed) return;
 
-            if (rb.velocity.magnitude > 8f)
+            if (rb.linearVelocity.magnitude > 8f)
             {
                 DestroyKit();
             }
@@ -300,7 +331,7 @@ public class CharacterBehavior : MonoBehaviour
 
             if (collision.gameObject.CompareTag("Terrain"))
             {
-                if (rb.velocity.magnitude > 8f)
+                if (rb.linearVelocity.magnitude > 8f)
                 {
                     DestroyKit();
                 }
