@@ -1,44 +1,48 @@
 ﻿using UnityEngine;
 
+[RequireComponent(typeof(ParticleSystem), typeof(AudioSource))]
 public class SnowFollowDrone : MonoBehaviour
 {
-    public Transform droneTransform; // Assign your drone object in the inspector
-    public float heightOffset = 3f; // Adjust this to control how high the snow floats above the drone
+    [Header("Drone Settings")]
+    public Transform droneTransform;             // Assign the drone here in Inspector
+    public float heightOffset = 3f;              // Snow hover height above drone
 
     private ParticleSystem snowParticles;
+    private AudioSource blizzardAudio;
 
     void Start()
     {
-        // Get the particle system component
+        // Get components
         snowParticles = GetComponent<ParticleSystem>();
+        blizzardAudio = GetComponent<AudioSource>();
 
-        if (snowParticles == null)
-        {
-            Debug.LogWarning("SnowFollowDrone: No ParticleSystem found on this GameObject.");
-        }
-
+        // Safety checks
         if (droneTransform == null)
         {
-            Debug.LogError("SnowFollowDrone: Drone Transform is not assigned!");
+            Debug.LogError("❌ SnowFollowDrone: Drone Transform is not assigned!");
+            enabled = false;
+            return;
         }
 
-        // Ensure the particle system is playing
         if (!snowParticles.isPlaying)
         {
             snowParticles.Play();
+        }
+
+        if (blizzardAudio != null && !blizzardAudio.isPlaying)
+        {
+            blizzardAudio.loop = true;
+            blizzardAudio.Play();
         }
     }
 
     void LateUpdate()
     {
+        // Keep snow and sound following the drone
         if (droneTransform != null)
         {
-            // Follow the drone with the specified height offset
-            transform.position = new Vector3(
-                droneTransform.position.x,
-                droneTransform.position.y + heightOffset,
-                droneTransform.position.z
-            );
+            Vector3 followPosition = droneTransform.position + Vector3.up * heightOffset;
+            transform.position = followPosition;
         }
     }
 }

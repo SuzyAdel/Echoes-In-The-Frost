@@ -19,11 +19,11 @@ public class PlaceCharacter : MonoBehaviour
             terrain = Terrain.activeTerrain;
         }
 
-        // Play the sitting animation initially
-        if (characterAnimator != null)
-        {
-            characterAnimator.Play(sittingAnimation);
-        }
+        //// Play the sitting animation initially
+        //if (characterAnimator != null)
+        //{
+        //    characterAnimator.Play(sittingAnimation);
+        //}
 
         // Find a suitable random position on the terrain
         PlaceCharacterOnValidGround();
@@ -53,10 +53,11 @@ public class PlaceCharacter : MonoBehaviour
             // Generate random position within terrain bounds
             float randomX = Random.Range(terrainPos.x, terrainPos.x + terrainSize.x);
             float randomZ = Random.Range(terrainPos.z, terrainPos.z + terrainSize.z);
-            Vector3 randomPosition = new Vector3(randomX, terrainPos.y + terrainSize.y, randomZ);
+            Vector3 randomPosition = new Vector3(randomX, terrain.SampleHeight(new Vector3(randomX, 0, randomZ)), randomZ);
+            
 
             // Raycast down to find the ground
-            if (Physics.Raycast(randomPosition, Vector3.down, out RaycastHit hit, Mathf.Infinity, groundLayer))
+            if (Physics.Raycast(randomPosition, Vector3.down, out RaycastHit hit))
             {
                 // Check the slope angle
                 float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
@@ -64,16 +65,14 @@ public class PlaceCharacter : MonoBehaviour
                 if (slopeAngle <= maxSlopeAngle)
                 {
                     // Valid position found
-                    transform.position = hit.point;
+
+                    transform.position = randomPosition;
 
                     // Rotate character to face a random direction
                     transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
 
                     // Adjust position slightly to ensure feet are on ground
-                    if (TryGetComponent(out CapsuleCollider collider))
-                    {
-                        transform.position += Vector3.up * collider.height * 0.5f;
-                    }
+                    transform.position += Vector3.up * 0.1f;
 
                     positionFound = true;
                     Debug.Log($"Found valid position after {attempts} attempts");
